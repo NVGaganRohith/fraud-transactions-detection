@@ -1,3 +1,5 @@
 .gitgnore
 JPMorgan/
 *.csv
+checkcuda.py
+DataInfo.ipynb
