@@ -1,0 +1,91 @@
+source(output(
+		Time_step as string,
+		Transaction_Id as string,
+		Sender_Id as string,
+		Sender_Account as string,
+		Sender_Country as string,
+		Sender_Sector as string,
+		Sender_lob as string,
+		Bene_Id as string,
+		Bene_Account as string,
+		Bene_Country as string,
+		USD_amount as string,
+		Label as string,
+		Transaction_Type as string
+	),
+	allowSchemaDrift: true,
+	validateSchema: false,
+	ignoreNoFilesFound: false) ~> BatchRawData
+DeDuplicatedData derive(Date = split(Time_Step," ")[1],
+		Time = split(Time_Step," ")[2]) ~> SplitTimeStep
+SplitTimeStep derive(Year = split(Date, "-")[1],
+		Month = split(Date, "-")[2],
+		Day = split(Date, "-")[3],
+		Time = add(add(multiply(toInteger(split(Time, ':')[1]), 3600),multiply(toInteger(split(Time, ':')[2]), 60)),toInteger(split(Time, ':')[3])),
+		Label = toInteger(Label),
+		USD_amount = toFloat(USD_amount),
+		Sender_Sector = toFloat(Sender_Sector),
+		Sender_Type = left(regexReplace(Sender_Id, '\\d+', ''), (length(regexReplace(Sender_Id, '\\d+', ''))-1)),
+		Bene_Type = left(regexReplace(Bene_Id, '\\d+', ''), (length(regexReplace(Bene_Id, '\\d+', ''))-1)),
+		Sender_Country = iif(Sender_Country == 'USA', 'USA', iif(Sender_Country == 'CANADA', 'CANADA', iif(Sender_Country == 'GERMANY', 'GERMANY', 'OTHERS'))),
+		Bene_Country = iif(Bene_Country == 'USA', 'USA', iif(Bene_Country == 'CANADA', 'CANADA', iif(Bene_Country == 'GERMANY', 'GERMANY', 'OTHERS')))) ~> MainTranforms
+DroppingAllNull select(mapColumn(
+		Time_Step = Time_step,
+		Transaction_Id,
+		Sender_Id,
+		Sender_Account,
+		Sender_Country,
+		Sender_Sector,
+		Sender_lob,
+		Bene_Id,
+		Bene_Account,
+		Bene_Country,
+		USD_amount,
+		Label,
+		Transaction_Type
+	),
+	skipDuplicateMapInputs: true,
+	skipDuplicateMapOutputs: true) ~> DeDuplicatedData
+ScalingColumns select(mapColumn(
+		Transaction_Id,
+		Sender_Country,
+		Sender_Sector,
+		Bene_Country,
+		USD_amount,
+		Label,
+		Transaction_Type,
+		Sender_Type,
+		Bene_Type,
+		Time_Scaled_Standard,
+		Year_MinMax,
+		Month_MinMax,
+		Day_MinMax
+	),
+	skipDuplicateMapInputs: true,
+	skipDuplicateMapOutputs: true) ~> DroppingColumns
+BatchRawData filter(!isNull(Time_step) && 
+!isNull(Transaction_Id) && 
+!isNull(Sender_Id) && 
+!isNull(Sender_Account) && 
+!isNull(Sender_Country) && 
+!isNull(Sender_Sector) && 
+!isNull(Sender_lob) && 
+!isNull(Bene_Id) && 
+!isNull(Bene_Account) && 
+!isNull(Bene_Country) && 
+!isNull(USD_amount) && 
+!isNull(Label) && 
+!isNull(Transaction_Type)) ~> DroppingAllNull
+MainTranforms derive(Time_Scaled_Standard = (Time - 43151.538158807896)/24891.49100895904,
+		Year_MinMax = (toInteger(Year) - 2022) / 32,
+		Month_MinMax = (toInteger(Month) - 1) / 11,
+		Day_MinMax = (toInteger(Day) - 1) / 30) ~> ScalingColumns
+DroppingColumns sink(allowSchemaDrift: true,
+	validateSchema: false,
+	filePattern:'SupervisedData[n]',
+	umask: 0022,
+	preCommands: [],
+	postCommands: [],
+	skipDuplicateMapInputs: true,
+	skipDuplicateMapOutputs: true,
+	saveOrder: 0) ~> SupervisedSink

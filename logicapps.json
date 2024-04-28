@@ -1,0 +1,224 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Condition": {
+                "actions": {
+                    "Condition_2": {
+                        "actions": {
+                            "Condition_3": {
+                                "actions": {
+                                    "Update_row_2": {
+                                        "inputs": {
+                                            "body": {
+                                                "Bene_Country": "@triggerBody()?['Bene_Country']",
+                                                "Bene_Type": "@triggerBody()?['Bene_Type']",
+                                                "Day": "@triggerBody()?['Day']",
+                                                "Label": "@triggerBody()?['Label']",
+                                                "Month": "@triggerBody()?['Month']",
+                                                "Risk_Priority": "\"Medium-Priority\"",
+                                                "Sender_Country": "@triggerBody()?['Sender_Country']",
+                                                "Sender_Sector": "@triggerBody()?['Sender_Sector']",
+                                                "Sender_Type": "@triggerBody()?['Sender_Type']",
+                                                "Time": "@triggerBody()?['Time']",
+                                                "Transaction_Id": "@triggerBody()?['Transaction_Id']",
+                                                "Transaction_Type": "@triggerBody()?['Transaction_Type']",
+                                                "USD_amount": "@triggerBody()?['USD_amount']",
+                                                "Year": "@triggerBody()?['Year']"
+                                            },
+                                            "host": {
+                                                "connection": {
+                                                    "name": "@parameters('$connections')['azuremysql']['connectionId']"
+                                                }
+                                            },
+                                            "method": "patch",
+                                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent('default'))},@{encodeURIComponent(encodeURIComponent('default'))}/tables/@{encodeURIComponent(encodeURIComponent('[predicted_outcomes_db].[predictions_made_by_model_table]'))}/items/@{encodeURIComponent(encodeURIComponent(triggerBody()?['created_at']))}"
+                                        },
+                                        "type": "ApiConnection"
+                                    }
+                                },
+                                "else": {
+                                    "actions": {
+                                        "Update_row_3": {
+                                            "inputs": {
+                                                "body": {
+                                                    "Bene_Country": "@triggerBody()?['Bene_Country']",
+                                                    "Bene_Type": "@triggerBody()?['Bene_Type']",
+                                                    "Day": "@triggerBody()?['Day']",
+                                                    "Label": "@triggerBody()?['Label']",
+                                                    "Month": "@triggerBody()?['Month']",
+                                                    "Risk_Priority": "\"Low-Priority\"",
+                                                    "Sender_Country": "@triggerBody()?['Sender_Country']",
+                                                    "Sender_Sector": "@triggerBody()?['Sender_Sector']",
+                                                    "Sender_Type": "@triggerBody()?['Sender_Type']",
+                                                    "Time": "@triggerBody()?['Time']",
+                                                    "Transaction_Id": "@triggerBody()?['Transaction_Id']",
+                                                    "Transaction_Type": "@triggerBody()?['Transaction_Type']",
+                                                    "USD_amount": "@triggerBody()?['USD_amount']",
+                                                    "Year": "@triggerBody()?['Year']"
+                                                },
+                                                "host": {
+                                                    "connection": {
+                                                        "name": "@parameters('$connections')['azuremysql']['connectionId']"
+                                                    }
+                                                },
+                                                "method": "patch",
+                                                "path": "/datasets/@{encodeURIComponent(encodeURIComponent('default'))},@{encodeURIComponent(encodeURIComponent('default'))}/tables/@{encodeURIComponent(encodeURIComponent('[predicted_outcomes_db].[predictions_made_by_model_table]'))}/items/@{encodeURIComponent(encodeURIComponent(triggerBody()?['created_at']))}"
+                                            },
+                                            "type": "ApiConnection"
+                                        }
+                                    }
+                                },
+                                "expression": {
+                                    "or": [
+                                        {
+                                            "equals": [
+                                                "@triggerBody()?['Transaction_Type']",
+                                                "MAKE-PAYMENT"
+                                            ]
+                                        },
+                                        {
+                                            "equals": [
+                                                "@triggerBody()?['Transaction_Type']",
+                                                "MOVE-FUNDS"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "type": "If"
+                            }
+                        },
+                        "else": {
+                            "actions": {
+                                "Update_row": {
+                                    "inputs": {
+                                        "body": {
+                                            "Bene_Country": "@triggerBody()?['Bene_Country']",
+                                            "Bene_Type": "@triggerBody()?['Bene_Type']",
+                                            "Day": "@triggerBody()?['Day']",
+                                            "Label": "@triggerBody()?['Label']",
+                                            "Month": "@triggerBody()?['Month']",
+                                            "Risk_Priority": "High-Priority",
+                                            "Sender_Country": "@triggerBody()?['Sender_Country']",
+                                            "Sender_Sector": "@triggerBody()?['Sender_Sector']",
+                                            "Sender_Type": "@triggerBody()?['Sender_Type']",
+                                            "Time": "@triggerBody()?['Time']",
+                                            "Transaction_Id": "@triggerBody()?['Transaction_Id']",
+                                            "Transaction_Type": "@triggerBody()?['Transaction_Type']",
+                                            "USD_amount": "@triggerBody()?['USD_amount']",
+                                            "Year": "@triggerBody()?['Year']"
+                                        },
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azuremysql']['connectionId']"
+                                            }
+                                        },
+                                        "method": "patch",
+                                        "path": "/datasets/@{encodeURIComponent(encodeURIComponent('default'))},@{encodeURIComponent(encodeURIComponent('default'))}/tables/@{encodeURIComponent(encodeURIComponent('[predicted_outcomes_db].[predictions_made_by_model_table]'))}/items/@{encodeURIComponent(encodeURIComponent(triggerBody()?['created_at']))}"
+                                    },
+                                    "type": "ApiConnection"
+                                }
+                            }
+                        },
+                        "expression": {
+                            "and": [
+                                {
+                                    "lessOrEquals": [
+                                        "@triggerBody()?['USD_amount']",
+                                        5000
+                                    ]
+                                }
+                            ]
+                        },
+                        "runAfter": {
+                            "Send_an_email_(V2)_2": [
+                                "Succeeded"
+                            ]
+                        },
+                        "type": "If"
+                    },
+                    "Send_an_email_(V2)_2": {
+                        "inputs": {
+                            "body": {
+                                "Body": "<p>Dear Gagan,<br><br>Our automated fraud detection system has flagged a transaction that warrants your attention. Please review the details provided below:<br><br>Fraud Transaction Details:<br><br>Transction ID:@{triggerBody()?['Transaction_Id']}<br>Transction Type:@{triggerBody()?['Transaction_Type']}<br>Label:@{triggerBody()?['Label']}<br>Sender Sector:@{triggerBody()?['Sender_Sector']}<br>USD Amount:@{triggerBody()?['USD_amount']}<br>Sender Type:@{triggerBody()?['Sender_Type']}<br>Sender Country:@{triggerBody()?['Sender_Country']}<br>Bene Country:@{triggerBody()?['Bene_Country']}<br>Bene Type:@{triggerBody()?['Bene_Type']}<br><br>This notification serves as a precautionary measure. We advise thorough scrutiny of this transaction. If deemed legitimate, you may disregard this alert. However, if suspicions arise regarding fraudulent activity, please initiate immediate investigation by contacting our fraud detection team at fraudtransactioninvestigationteam@genpact.com<br><br>Kindly treat this matter with urgency.<br><br>Best regards,<br><br>Fruad Detection Automated System<br>Genpact</p>",
+                                "Importance": "High",
+                                "Subject": "ALERT: Potential Fraudulent Transaction Detected",
+                                "To": "gaganrohith2002@gmail.com"
+                            },
+                            "host": {
+                                "connection": {
+                                    "name": "@parameters('$connections')['office365']['connectionId']"
+                                }
+                            },
+                            "method": "post",
+                            "path": "/v2/Mail"
+                        },
+                        "type": "ApiConnection"
+                    }
+                },
+                "else": {
+                    "actions": {}
+                },
+                "expression": {
+                    "and": [
+                        {
+                            "equals": [
+                                "@triggerBody()?['Label']",
+                                1
+                            ]
+                        }
+                    ]
+                },
+                "runAfter": {},
+                "type": "If"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            }
+        },
+        "triggers": {
+            "When_an_item_is_created": {
+                "evaluatedRecurrence": {
+                    "frequency": "Minute",
+                    "interval": 3
+                },
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azuremysql']['connectionId']"
+                        }
+                    },
+                    "method": "get",
+                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent('default'))},@{encodeURIComponent(encodeURIComponent('default'))}/tables/@{encodeURIComponent(encodeURIComponent('predicted_outcomes_db.predictions_made_by_model_table'))}/onnewitems"
+                },
+                "recurrence": {
+                    "frequency": "Minute",
+                    "interval": 3
+                },
+                "splitOn": "@triggerBody()?['value']",
+                "type": "ApiConnection"
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "value": {
+                "azuremysql": {
+                    "connectionId": "/subscriptions/24784a25-4b3b-4fbe-bd67-045821454fda/resourceGroups/Capstone_Project_Genpact/providers/Microsoft.Web/connections/azuremysql",
+                    "connectionName": "azuremysql",
+                    "id": "/subscriptions/24784a25-4b3b-4fbe-bd67-045821454fda/providers/Microsoft.Web/locations/eastus/managedApis/azuremysql"
+                },
+                "office365": {
+                    "connectionId": "/subscriptions/24784a25-4b3b-4fbe-bd67-045821454fda/resourceGroups/Capstone_Project_Genpact/providers/Microsoft.Web/connections/office365-1",
+                    "connectionName": "office365-1",
+                    "id": "/subscriptions/24784a25-4b3b-4fbe-bd67-045821454fda/providers/Microsoft.Web/locations/eastus/managedApis/office365"
+                }
+            }
+        }
+    }
+}

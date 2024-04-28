@@ -1,0 +1,24 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+name: fileselect
+version: 1
+is_deterministic: True
+description: "Component Selects a file from the directory input"
+type: command
+inputs:
+  input_folder:
+    type: uri_folder
+    optional: False
+outputs:
+  selected_file:
+    type: uri_file
+    optional: False
+parameters:
+  file_path_mention:
+    type: string
+    optional: False
+code: azureml:/subscriptions/24784a25-4b3b-4fbe-bd67-045821454fda/resourceGroups/Capstone_Project_Genpact/providers/Microsoft.MachineLearningServices/workspaces/fraudML/codes/0f8cd373-78e2-4da5-8b27-716d5a2da350/versions/1
+environment: azureml://locations/eastus/workspaces/6a003ef5-2ce6-4951-b781-b783e1345bf3/environments/StudioUIV2AnonymousEnvironment/versions/5
+resources:
+  instance_count: 1
+command: python fileselect.py --input_folder ${{inputs.input_folder}} --selected_file_path ${{parameters.selected_file_path}}
+...
